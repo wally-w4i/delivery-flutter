@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:delivery_flutter/models/client.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'map_screen.dart';
+
 class ClientListScreen extends StatefulWidget {
   const ClientListScreen({super.key});
 
@@ -146,7 +148,16 @@ class _EditClientDialogState extends State<EditClientDialog> {
             ),
             ElevatedButton(
               child: const Text('Select Location'),
-              onPressed: () async {},
+              onPressed: () async {
+                final LatLng? result = await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const MapScreen()),
+                );
+                if (result != null) {
+                  setState(() {
+                    _selectedLocation = result;
+                  });
+                }
+              },
             ),
           ],
         ),
@@ -227,7 +238,16 @@ class _AddClientDialogState extends State<AddClientDialog> {
             ),
             ElevatedButton(
               child: const Text('Select Location'),
-              onPressed: () async {},
+              onPressed: () async {
+                final LatLng? result = await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const MapScreen()),
+                );
+                if (result != null) {
+                  setState(() {
+                    _selectedLocation = result;
+                  });
+                }
+              },
             ),
           ],
         ),
