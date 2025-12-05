@@ -39,9 +39,7 @@ class _ClientScreenState extends State<ClientScreen> {
               await _apiService.logout();
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
               );
             },
           ),
@@ -58,17 +56,27 @@ class _ClientScreenState extends State<ClientScreen> {
                 return ListTile(
                   title: Text(client.description),
                   subtitle: Text(client.address),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () async {
+                      final result = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddClientScreen(client: client),
+                        ),
+                      );
+                      if (result == true) {
+                        _refreshClients();
+                      }
+                    },
+                  ),
                 );
               },
             );
           } else if (snapshot.hasError) {
-            return Center(
-              child: Text('${snapshot.error}'),
-            );
+            return Center(child: Text('${snapshot.error}'));
           }
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         },
       ),
       floatingActionButton: FloatingActionButton(

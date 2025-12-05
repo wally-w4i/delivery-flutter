@@ -3,7 +3,9 @@ import 'package:delivery_flutter/src/services/api_service.dart';
 import 'package:flutter/material.dart';
 
 class AddClientScreen extends StatefulWidget {
-  const AddClientScreen({super.key});
+  final Client? client;
+
+  const AddClientScreen({super.key, this.client});
 
   @override
   State<AddClientScreen> createState() => _AddClientScreenState();
@@ -11,11 +13,28 @@ class AddClientScreen extends StatefulWidget {
 
 class _AddClientScreenState extends State<AddClientScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _descriptionController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _latitudeController = TextEditingController();
-  final _longitudeController = TextEditingController();
+  late TextEditingController _descriptionController;
+  late TextEditingController _addressController;
+  late TextEditingController _latitudeController;
+  late TextEditingController _longitudeController;
   final ApiService _apiService = ApiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _descriptionController = TextEditingController(
+      text: widget.client?.description ?? '',
+    );
+    _addressController = TextEditingController(
+      text: widget.client?.address ?? '',
+    );
+    _latitudeController = TextEditingController(
+      text: widget.client?.gpsPosition.latitude.toString() ?? '',
+    );
+    _longitudeController = TextEditingController(
+      text: widget.client?.gpsPosition.longitude.toString() ?? '',
+    );
+  }
 
   @override
   void dispose() {
@@ -26,10 +45,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
     super.dispose();
   }
 
-  Future<void> _createClient() async {
+  Future<void> _saveClient() async {
     if (_formKey.currentState!.validate()) {
       try {
         final client = Client(
+          id: widget.client?.id,
           description: _descriptionController.text,
           address: _addressController.text,
           gpsPosition: GpsPosition(
@@ -37,25 +57,34 @@ class _AddClientScreenState extends State<AddClientScreen> {
             longitude: double.parse(_longitudeController.text),
           ),
         );
-        await _apiService.createClient(client);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Client created successfully!')),
-        );
-        Navigator.pop(context);
+
+        if (widget.client != null) {
+          // Update existing client
+          await _apiService.updateClient(widget.client!.id!, client);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Client updated successfully!')),
+          );
+        } else {
+          // Create new client
+          await _apiService.createClient(client);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Client created successfully!')),
+          );
+        }
+        Navigator.pop(context, true);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create client: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save client: $e')));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.client != null;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Client'),
-      ),
+      appBar: AppBar(title: Text(isEditing ? 'Edit Client' : 'Add New Client')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -112,8 +141,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _createClient,
-                child: const Text('Add Client'),
+                onPressed: _saveClient,
+                child: Text(isEditing ? 'Update Client' : 'Add Client'),
               ),
             ],
           ),

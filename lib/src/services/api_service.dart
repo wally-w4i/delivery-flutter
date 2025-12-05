@@ -83,4 +83,26 @@ class ApiService {
       throw Exception('Failed to create client');
     }
   }
+
+  Future<Client> updateClient(int id, Client client) async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
+
+    final response = await http.put(
+      Uri.parse('$_baseUrl/api/clients/$id'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(client.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      return Client.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to update client');
+    }
+  }
 }
