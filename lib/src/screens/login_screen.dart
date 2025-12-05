@@ -1,3 +1,4 @@
+import 'package:delivery_flutter/src/screens/home_screen.dart';
 import 'package:delivery_flutter/src/services/api_service.dart';
 import 'package:flutter/material.dart';
 
@@ -44,7 +45,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 final password = _passwordController.text;
                 final token = await _apiService.authenticate(email, password);
                 if (token != null) {
-                  Navigator.pushReplacementNamed(context, '/home');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomeScreen(),
+                    ),
+                  );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
