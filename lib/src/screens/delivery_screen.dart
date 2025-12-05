@@ -3,8 +3,22 @@ import 'package:delivery_flutter/src/services/api_service.dart';
 import 'package:delivery_flutter/src/screens/add_edit_delivery_screen.dart';
 import 'package:flutter/material.dart';
 
-class DeliveryScreen extends StatelessWidget {
+class DeliveryScreen extends StatefulWidget {
   const DeliveryScreen({super.key});
+
+  @override
+  State<DeliveryScreen> createState() => _DeliveryScreenState();
+}
+
+class _DeliveryScreenState extends State<DeliveryScreen> {
+  final ApiService _apiService = ApiService();
+  late Future<List<Delivery>> _deliveriesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _deliveriesFuture = _apiService.getDeliveries();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:delivery_flutter/models/client.dart';
+import 'package:delivery_flutter/models/delivery.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
