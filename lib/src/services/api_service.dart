@@ -3,6 +3,8 @@ import 'package:delivery_flutter/models/client.dart';
 import 'package:delivery_flutter/models/delivery.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class ApiService {
   static const String _baseUrl = 'http://192.168.20.136:8080';
@@ -37,22 +39,25 @@ class ApiService {
     return await _secureStorage.read(key: 'auth_token');
   }
 
+  Future<Map<String, String>> _getHeaders() async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Authentication token not found');
+    }
+    return <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
   Future<void> logout() async {
     await _secureStorage.delete(key: 'auth_token');
   }
 
   Future<List<Client>> getClients() async {
-    final token = await _getToken();
-    if (token == null) {
-      throw Exception('Token not found');
-    }
-
     final response = await http.get(
       Uri.parse('$_baseUrl/api/clients'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
+      headers: await _getHeaders(),
     );
 
     if (response.statusCode == 200) {
@@ -64,17 +69,9 @@ class ApiService {
   }
 
   Future<Client> createClient(Client client) async {
-    final token = await _getToken();
-    if (token == null) {
-      throw Exception('Token not found');
-    }
-
     final response = await http.post(
       Uri.parse('$_baseUrl/api/clients'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
+      headers: await _getHeaders(),
       body: jsonEncode(client.toJson()),
     );
 
@@ -86,17 +83,9 @@ class ApiService {
   }
 
   Future<Client> updateClient(int id, Client client) async {
-    final token = await _getToken();
-    if (token == null) {
-      throw Exception('Token not found');
-    }
-
     final response = await http.put(
       Uri.parse('$_baseUrl/api/clients/$id'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
+      headers: await _getHeaders(),
       body: jsonEncode(client.toJson()),
     );
 
@@ -108,17 +97,9 @@ class ApiService {
   }
 
   Future<List<Delivery>> getDeliveries() async {
-    final token = await _getToken();
-    if (token == null) {
-      throw Exception('Token not found');
-    }
-
     final response = await http.get(
       Uri.parse('$_baseUrl/api/deliveries'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
+      headers: await _getHeaders(),
     );
 
     if (response.statusCode == 200) {
@@ -130,17 +111,9 @@ class ApiService {
   }
 
   Future<Delivery> createDelivery(Delivery delivery) async {
-    final token = await _getToken();
-    if (token == null) {
-      throw Exception('Token not found');
-    }
-
     final response = await http.post(
       Uri.parse('$_baseUrl/api/deliveries'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
+      headers: await _getHeaders(),
       body: jsonEncode(delivery.toJson()),
     );
 
@@ -152,17 +125,9 @@ class ApiService {
   }
 
   Future<Delivery> updateDelivery(int id, Delivery delivery) async {
-    final token = await _getToken();
-    if (token == null) {
-      throw Exception('Token not found');
-    }
-
     final response = await http.put(
       Uri.parse('$_baseUrl/api/deliveries/$id'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
+      headers: await _getHeaders(),
       body: jsonEncode(delivery.toJson()),
     );
 
@@ -171,5 +136,49 @@ class ApiService {
     } else {
       throw Exception('Failed to update delivery: ${response.statusCode}');
     }
+  }
+
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        return null;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+
+      if (userCredential.user != null) {
+        final idToken = await userCredential.user!.getIdToken();
+        if (idToken != null) {
+          print(idToken);
+          await _saveToken(idToken);
+        }
+      }
+
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      print('Error Firebase: ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('Error desconocido: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> signOut() async {
+    await GoogleSignIn().signOut();
+    await FirebaseAuth.instance.signOut();
+    await _secureStorage.delete(key: 'auth_token');
   }
 }

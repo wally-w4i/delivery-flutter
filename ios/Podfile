@@ -1,0 +1,7 @@
+platform :ios, '13.0'  # mínimo recomendado
+
+# Añade al final
+pod 'Firebase/Auth'
+
+# CocoaPods analytics session disable
+$RNFirebaseAnalyticsWithoutAdIdSupport = true
