@@ -17,28 +17,38 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-              ),
+              decoration: const InputDecoration(labelText: 'Email'),
             ),
             const SizedBox(height: 16.0),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-              ),
+              decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
             const SizedBox(height: 16.0),
+            ElevatedButton.icon(
+              icon: Image.asset('assets/google_logo.png', height: 24),
+              label: Text('Login wiht Google'),
+              onPressed: () async {
+                final userCredential = await _apiService.signInWithGoogle();
+                if (userCredential != null) {
+                  print(
+                    "¡Login successful! ${userCredential.user!.displayName}",
+                  );
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                }
+              },
+            ),
             ElevatedButton(
               onPressed: () async {
                 final email = _emailController.text;
@@ -47,15 +57,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (token != null) {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const HomeScreen(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Failed to login'),
-                    ),
+                    const SnackBar(content: Text('Failed to login')),
                   );
                 }
               },

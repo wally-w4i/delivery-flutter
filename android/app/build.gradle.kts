@@ -4,6 +4,7 @@ import java.io.FileInputStream
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    id("com.google.gms.google-services")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -15,7 +16,7 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.delivery_flutter"
+    namespace = "com.gloomygold.delivery"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -29,7 +30,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.delivery_flutter"
+        applicationId = "com.gloomygold.delivery"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -48,4 +49,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 }
